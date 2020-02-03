@@ -7,22 +7,22 @@ import (
 	"strconv"
 
 	"github.com/fasikawkn/Web_user_App/Server/entity"
-	"github.com/fasikawkn/Web_user_App/Server/users/service"
+	"github.com/fasikawkn/Web_user_App/Server/pictures/service"
 	"github.com/julienschmidt/httprouter"
 )
 
-//UserHandler ..
-type UserHandler struct {
-	usrSrv *service.UserServices
+//PictureHandler ..
+type PictureHandler struct {
+	picSrv *service.PictureService
 }
 
-//NewUserHandler returns  new UserHandler
-func NewUserHandler(srv *service.UserServices) *UserHandler {
-	return &UserHandler{usrSrv: srv}
+//NewPictureHandler returns  new UserHandler
+func NewPictureHandler(srv *service.PictureService) *PictureHandler {
+	return &PictureHandler{picSrv: srv}
 }
 
-//GetSingleUser returns a single user
-func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//GetSinglePicture returns a single user
+func (picHdlr *PictureHandler) GetSinglePicture(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	idRaw := ps.ByName("id")
 	id, err := strconv.Atoi(idRaw)
 	if err != nil {
@@ -31,7 +31,7 @@ func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, err := usrHdlr.usrSrv.GetSingleUser(id)
+	user, err := picHdlr.picSrv.GetSinglePicture(id)
 	if err != nil {
 		w.Header().Set("Content-type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -49,9 +49,17 @@ func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request
 
 }
 
-//GetManyUsers returns many users
-func (usrHdlr *UserHandler) GetManyUsers(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	user, err := usrHdlr.usrSrv.GetManyUsers()
+//GetManyPictures returns many users
+func (picHdlr *PictureHandler) GetManyPictures(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	idRaw := ps.ByName("placeid")
+	id, err := strconv.Atoi(idRaw)
+	if err != nil {
+		w.Header().Set("Content-type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	user, err := picHdlr.picSrv.GetManyPictures(id)
 	if err != nil {
 		w.Header().Set("Content-type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -68,12 +76,12 @@ func (usrHdlr *UserHandler) GetManyUsers(w http.ResponseWriter, r *http.Request,
 	return
 }
 
-//AddUser adds a new user to the database
-func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//AddPicture adds a new user to the database
+func (picHdlr *PictureHandler) AddPicture(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	l := r.ContentLength
 	body := make([]byte, l)
 	r.Body.Read(body)
-	user := &entity.User{}
+	user := &entity.Picture{}
 
 	errs := json.Unmarshal(body, user)
 
@@ -85,7 +93,7 @@ func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	medicine, err := usrHdlr.usrSrv.AddUser(user)
+	medicine, err := picHdlr.picSrv.AddPicture(user)
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -93,14 +101,14 @@ func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	p := fmt.Sprintf("/host/user/%d", medicine.ID)
+	p := fmt.Sprintf("/host/picture/%d", medicine.ID)
 	w.Header().Set("Location", p)
 	w.WriteHeader(http.StatusCreated)
 	return
 }
 
-//UpdateUser updates user
-func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//UpdatePicture updates user
+func (picHdlr *PictureHandler) UpdatePicture(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	id, err := strconv.Atoi(ps.ByName("id"))
 	if err != nil {
@@ -109,7 +117,7 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	user, errs := usrHdlr.usrSrv.GetSingleUser(id)
+	user, errs := picHdlr.picSrv.GetSinglePicture(id)
 
 	if errs != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -125,7 +133,7 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 
 	json.Unmarshal(body, &user)
 
-	userUp, err := usrHdlr.usrSrv.UpdateUser(user)
+	userUp, err := picHdlr.picSrv.UpdatePicture(user)
 
 	if err != nil {
 		fmt.Println("Error")
@@ -146,8 +154,8 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 	return
 }
 
-//DeleteUser deletes a single user
-func (usrHdlr *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//DeletePicture deletes a single user
+func (picHdlr *PictureHandler) DeletePicture(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.Atoi(ps.ByName("id"))
 
 	if err != nil {
@@ -157,10 +165,10 @@ func (usrHdlr *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, p
 	}
 	fmt.Println("id ", id)
 
-	errs := usrHdlr.usrSrv.DeleteUser(id)
+	errs := picHdlr.picSrv.DeletePicture(id)
 
 	if errs != nil {
-		fmt.Println(err)
+		fmt.Println(errs)
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return

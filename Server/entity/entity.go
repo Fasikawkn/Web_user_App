@@ -12,10 +12,11 @@ type User struct {
 
 //Place defines a single Place
 type Place struct {
-	ID       int
-	UserID   int
-	Name     string
-	Location string
+	ID          int
+	UserID      int
+	Name        string
+	Location    string
+	Description string
 }
 
 //Picture defines a single picture

@@ -7,22 +7,22 @@ import (
 	"strconv"
 
 	"github.com/fasikawkn/Web_user_App/Server/entity"
-	"github.com/fasikawkn/Web_user_App/Server/users/service"
+	"github.com/fasikawkn/Web_user_App/Server/places/service"
 	"github.com/julienschmidt/httprouter"
 )
 
-//UserHandler ..
-type UserHandler struct {
-	usrSrv *service.UserServices
+//PlacePHandler ..
+type PlacePHandler struct {
+	placeSrv *service.PlaceService
 }
 
-//NewUserHandler returns  new UserHandler
-func NewUserHandler(srv *service.UserServices) *UserHandler {
-	return &UserHandler{usrSrv: srv}
+//NewPlacePHandler returns  new UserHandler
+func NewPlacePHandler(srv *service.PlaceService) *PlacePHandler {
+	return &PlacePHandler{placeSrv: srv}
 }
 
-//GetSingleUser returns a single user
-func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//GetSinglePlace returns a single user
+func (placeHdlr *PlacePHandler) GetSinglePlace(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	idRaw := ps.ByName("id")
 	id, err := strconv.Atoi(idRaw)
 	if err != nil {
@@ -31,7 +31,7 @@ func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	user, err := usrHdlr.usrSrv.GetSingleUser(id)
+	user, err := placeHdlr.placeSrv.GetSinglePlace(id)
 	if err != nil {
 		w.Header().Set("Content-type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -49,9 +49,17 @@ func (usrHdlr *UserHandler) GetSingleUser(w http.ResponseWriter, r *http.Request
 
 }
 
-//GetManyUsers returns many users
-func (usrHdlr *UserHandler) GetManyUsers(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	user, err := usrHdlr.usrSrv.GetManyUsers()
+//GetManyPlaces returns many users
+func (placeHdlr *PlacePHandler) GetManyPlaces(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	idRaw := ps.ByName("userid")
+	id, err := strconv.Atoi(idRaw)
+	if err != nil {
+		w.Header().Set("Content-type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	user, err := placeHdlr.placeSrv.GetManyPlaces(id)
 	if err != nil {
 		w.Header().Set("Content-type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -68,12 +76,12 @@ func (usrHdlr *UserHandler) GetManyUsers(w http.ResponseWriter, r *http.Request,
 	return
 }
 
-//AddUser adds a new user to the database
-func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//AddPlace adds a new user to the database
+func (placeHdlr *PlacePHandler) AddPlace(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	l := r.ContentLength
 	body := make([]byte, l)
 	r.Body.Read(body)
-	user := &entity.User{}
+	user := &entity.Place{}
 
 	errs := json.Unmarshal(body, user)
 
@@ -85,7 +93,7 @@ func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	medicine, err := usrHdlr.usrSrv.AddUser(user)
+	medicine, err := placeHdlr.placeSrv.AddPlace(user)
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -93,14 +101,14 @@ func (usrHdlr *UserHandler) AddUser(w http.ResponseWriter, r *http.Request, ps h
 		return
 	}
 
-	p := fmt.Sprintf("/host/user/%d", medicine.ID)
+	p := fmt.Sprintf("/host/place/%d", medicine.ID)
 	w.Header().Set("Location", p)
 	w.WriteHeader(http.StatusCreated)
 	return
 }
 
-//UpdateUser updates user
-func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//UpdatePlace updates user
+func (placeHdlr *PlacePHandler) UpdatePlace(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	id, err := strconv.Atoi(ps.ByName("id"))
 	if err != nil {
@@ -109,7 +117,7 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 		return
 	}
 
-	user, errs := usrHdlr.usrSrv.GetSingleUser(id)
+	user, errs := placeHdlr.placeSrv.GetSinglePlace(id)
 
 	if errs != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -125,7 +133,7 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 
 	json.Unmarshal(body, &user)
 
-	userUp, err := usrHdlr.usrSrv.UpdateUser(user)
+	userUp, err := placeHdlr.placeSrv.UpdatePlace(user)
 
 	if err != nil {
 		fmt.Println("Error")
@@ -146,8 +154,8 @@ func (usrHdlr *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request, p
 	return
 }
 
-//DeleteUser deletes a single user
-func (usrHdlr *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//DeletePlace deletes a single user
+func (placeHdlr *PlacePHandler) DeletePlace(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	id, err := strconv.Atoi(ps.ByName("id"))
 
 	if err != nil {
@@ -157,10 +165,10 @@ func (usrHdlr *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, p
 	}
 	fmt.Println("id ", id)
 
-	errs := usrHdlr.usrSrv.DeleteUser(id)
+	errs := placeHdlr.placeSrv.DeletePlace(id)
 
 	if errs != nil {
-		fmt.Println(err)
+		fmt.Println(errs)
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return

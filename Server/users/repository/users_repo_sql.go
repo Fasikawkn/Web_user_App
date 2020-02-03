@@ -73,7 +73,7 @@ func (usrRepo *UserRepository) AddUser(user *entity.User) (*entity.User, error) 
 
 //DeleteUser deletes a specific id from the database using id
 func (usrRepo *UserRepository) DeleteUser(id int) error {
-	_, err := usrRepo.conn.Exec("DELETE from users where id = $1", id)
+	_, err := usrRepo.conn.Exec("DELETE from users where userid = $1", id)
 
 	if err != nil {
 		return err
@@ -83,8 +83,10 @@ func (usrRepo *UserRepository) DeleteUser(id int) error {
 
 //UpdateUser updates a single user from the database
 func (usrRepo *UserRepository) UpdateUser(user *entity.User) (*entity.User, error) {
-	_, err := usrRepo.conn.Exec("Update users set fullname = $1,username = $2, password = $3,picture = $4,address = $5", user.FullName, user.UserName, user.Password, user.Picture, user.Address)
+	fmt.Println("updating")
+	_, err := usrRepo.conn.Exec("UPDATE users set fullname = $1,username = $2, password = $3,picture = $4,address = $5 where userid = $6", user.FullName, user.UserName, user.Password, user.Picture, user.Address, user.ID)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return user, nil
